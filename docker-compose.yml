@@ -1,0 +1,34 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "4001:4001"
+    environment:
+      - JWT_SECRET=supersecretkey
+      - MONGO_URI=mongodb://mongo:27017/authdb
+    depends_on:
+      - mongo
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "4002:4002"
+    environment:
+      - JWT_SECRET=supersecretkey
+      - MONGO_URI=mongodb://mongo:27017/userdb
+    depends_on:
+      - mongo
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - user-service
