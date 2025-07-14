@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import proxy from 'express-http-proxy';
 import { config } from './config';
+import { ROUTES_PATH } from './constants/routesPath';
 
 dotenv.config();
 const app: Application = express();
@@ -44,7 +45,7 @@ app.use(
   }),
 );
 
-app.use('/auth', proxy(config.authServiceUrl));
+app.use(ROUTES_PATH.auth, proxy(config.authServiceUrl));
 // app.use('/users', proxy(config.userServiceUrl));
 
 app.listen(port, () => {
