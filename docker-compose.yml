@@ -11,7 +11,7 @@ services:
       - "4001:4001"
     environment:
       - JWT_SECRET=supersecretkey
-      - MONGO_URI=mongodb://mongo:27017/authdb
+      - MONGO_URI=${MONGO_URI}
     depends_on:
       - mongo
 
@@ -21,7 +21,7 @@ services:
       - "4002:4002"
     environment:
       - JWT_SECRET=supersecretkey
-      - MONGO_URI=mongodb://mongo:27017/userdb
+      - MONGO_URI=${MONGO_URI}
     depends_on:
       - mongo
 
