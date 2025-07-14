@@ -5,7 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import authRoute from './routes/authRoute';
+import authRoutes from './routes/authRoutes';
 import { ROUTES_PATH } from './constants/routesPath';
 
 dotenv.config();
@@ -44,7 +44,7 @@ app.use(
   }),
 );
 
-app.use(ROUTES_PATH.auth, authRoute);
+app.use(ROUTES_PATH.auth, authRoutes);
 
 app.listen(port, () => {
   connectDB();
