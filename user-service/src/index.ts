@@ -5,6 +5,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { ROUTES_PATH } from './constants/routesPath';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config();
 const app: Application = express();
@@ -41,6 +43,8 @@ app.use(
     crossOriginResourcePolicy: false,
   }),
 );
+
+app.use(ROUTES_PATH.user, userRoutes);
 
 app.listen(port, () => {
   connectDB();

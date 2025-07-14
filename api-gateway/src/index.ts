@@ -46,7 +46,7 @@ app.use(
 );
 
 app.use(ROUTES_PATH.auth, proxy(config.authServiceUrl));
-// app.use('/users', proxy(config.userServiceUrl));
+app.use(ROUTES_PATH.user, proxy(config.userServiceUrl));
 
 app.listen(port, () => {
   connectDB();
