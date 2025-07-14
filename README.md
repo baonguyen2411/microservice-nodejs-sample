@@ -21,30 +21,63 @@ This project is a simple microservices architecture using:
 
 ---
 
-## 🏗️ Folder Structure
+## 🏗️ Project Structure
 
+```
 project-root/
+├── auth-service/          # Authentication microservice
+│   ├── Dockerfile        # Container configuration for auth service
+│   ├── package.json      # Dependencies and scripts
+│   ├── tsconfig.json     # TypeScript configuration
+│   └── src/
+│       └── index.ts      # Main entry point
 │
-├── auth-service/
-│ ├── Dockerfile
-│ └── src/index.ts
+├── user-service/          # User management microservice
+│   ├── Dockerfile        # Container configuration for user service
+│   ├── package.json      # Dependencies and scripts
+│   ├── tsconfig.json     # TypeScript configuration
+│   └── src/
+│       └── index.ts      # Main entry point
 │
-├── user-service/
-│ ├── Dockerfile
-│ └── src/index.ts
+├── api-gateway/           # API Gateway service
+│   ├── Dockerfile        # Container configuration for gateway
+│   ├── package.json      # Dependencies and scripts
+│   ├── tsconfig.json     # TypeScript configuration
+│   └── src/
+│       └── index.ts      # Main entry point
 │
-├── api-gateway/
-│ ├── Dockerfile
-│ └── src/index.ts
-│
-├── docker-compose.yml
-└── .env
+├── docker-compose.yml     # Multi-container orchestration
+└── .env                  # Environment variables
+```
 
-## 🚀 Run the Project
+---
 
+## 🚀 Quick Start
+
+```bash
+# Start all services
 docker-compose up --build
+
+# Stop all services
+docker-compose down
+
+# Rebuild and restart
+docker-compose up --build
+```
 
 ## 🔁 Useful Commands
 
-docker-compose down # Stop all containers
-docker-compose up --build # Rebuild and restart
+```bash
+# View running containers
+docker-compose ps
+
+# View logs for specific service
+docker-compose logs auth-service
+docker-compose logs user-service
+docker-compose logs api-gateway
+
+# Access service directly
+curl http://localhost:3000  # API Gateway
+curl http://localhost:4001  # Auth Service
+curl http://localhost:4002  # User Service
+```

@@ -1,4 +1,4 @@
-# User Service
+# API Gateway Service
 
 ## Project Structure
 

@@ -1,4 +1,4 @@
-# User Service
+# Auth Service
 
 ## Project Structure
 
