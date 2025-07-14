@@ -5,13 +5,15 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import proxy from 'express-http-proxy';
+import { config } from './config';
 
 dotenv.config();
 const app: Application = express();
-const port = process.env.PORT || 8080;
+const port = config.port;
 const corsOptions = {
   // origin: ['http://127.0.0.1:5173', 'http://localhost:5173', process.env.CLIENT_BASE_URL as string],
-  origin: process.env.FRONTEND_URL,
+  origin: config.clientBaseUrl,
   credentials: true,
 };
 
@@ -19,8 +21,8 @@ const corsOptions = {
 mongoose.set('strictQuery', false);
 const connectDB = async () => {
   try {
-    if (process.env.MONGO_URL) {
-      mongoose.connect(process.env.MONGO_URL, {
+    if (config.mongoUrl) {
+      mongoose.connect(config.mongoUrl, {
         //   useNewUrlParser: true,
         //   useUnifiedTopology: true,
       });
@@ -41,6 +43,9 @@ app.use(
     crossOriginResourcePolicy: false,
   }),
 );
+
+app.use('/auth', proxy(config.authServiceUrl));
+// app.use('/users', proxy(config.userServiceUrl));
 
 app.listen(port, () => {
   connectDB();
