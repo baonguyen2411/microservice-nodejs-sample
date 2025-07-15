@@ -25,6 +25,16 @@ services:
     depends_on:
       - mongo
 
+  tour-service:
+    build: ./tour-service
+    ports:
+      - "4003:4003"
+    environment:
+      - JWT_SECRET=supersecretkey
+      - MONGO_URI=${MONGO_URI}
+    depends_on:
+      - mongo
+
   api-gateway:
     build: ./api-gateway
     ports:
@@ -32,3 +42,4 @@ services:
     depends_on:
       - auth-service
       - user-service
+      - tour-service

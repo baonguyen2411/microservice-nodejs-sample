@@ -1,24 +1,24 @@
 import express, { RequestHandler, Router } from 'express';
 import {
   getSingleUser,
-  //   getAllUser,
+  getAllUser,
   updateUser,
   deleteUser,
   createUser,
 } from '../controllers/userController';
-import { verifyToken } from '../middlewares/verifyToken';
+import { verifyUser, verifyAdmin } from '../middlewares/verifyToken';
 
 const router: Router = express.Router();
 
 // create a new user
-router.post('/', verifyToken as RequestHandler, createUser);
+router.post('/', verifyUser as RequestHandler, createUser);
 // update user
-router.put('/:id', verifyToken as RequestHandler, updateUser);
+router.put('/:id', verifyUser as RequestHandler, updateUser);
 // delete user
-router.delete('/:id', verifyToken as RequestHandler, deleteUser);
+router.delete('/:id', verifyUser as RequestHandler, deleteUser);
 // get single user
-router.get('/:id', verifyToken as RequestHandler, getSingleUser);
+router.get('/:id', verifyUser as RequestHandler, getSingleUser);
 // get all user
-// router.get('/', verifyAdmin as RequestHandler, getAllUser);
+router.get('/', verifyAdmin as RequestHandler, getAllUser);
 
 export default router;
