@@ -68,6 +68,8 @@ app.use(
       proxyReqOpts.headers = {
         ...proxyReqOpts.headers,
         cookie: srcReq.headers.cookie || '',
+        'x-user-id': srcReq.headers['x-user-id'] || '',
+        'x-user-role': srcReq.headers['x-user-role'] || '',
       };
       console.log('proxyReqOpts', proxyReqOpts);
       return proxyReqOpts;
@@ -83,6 +85,8 @@ app.use(
       proxyReqOpts.headers = {
         ...proxyReqOpts.headers,
         cookie: srcReq.headers.cookie || '',
+        'x-user-id': srcReq.headers['x-user-id'] || '',
+        'x-user-role': srcReq.headers['x-user-role'] || '',
       };
       return proxyReqOpts;
     },
