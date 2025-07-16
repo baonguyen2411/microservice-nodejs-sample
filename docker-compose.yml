@@ -1,45 +1,53 @@
-version: "3.8"
 services:
-  mongo:
-    image: mongo
-    ports:
-      - "27017:27017"
-
   auth-service:
     build: ./auth-service
+    container_name: auth-service
+    restart: always
     ports:
       - "4001:4001"
     environment:
       - JWT_SECRET=supersecretkey
       - MONGO_URI=${MONGO_URI}
-    depends_on:
-      - mongo
+    networks:
+      - app-network
 
   user-service:
     build: ./user-service
+    container_name: user-service
+    restart: always
     ports:
       - "4002:4002"
     environment:
       - JWT_SECRET=supersecretkey
       - MONGO_URI=${MONGO_URI}
-    depends_on:
-      - mongo
+    networks:
+      - app-network
 
   tour-service:
     build: ./tour-service
+    container_name: tour-service
+    restart: always
     ports:
       - "4003:4003"
     environment:
       - JWT_SECRET=supersecretkey
       - MONGO_URI=${MONGO_URI}
-    depends_on:
-      - mongo
+    networks:
+      - app-network
 
   api-gateway:
     build: ./api-gateway
+    container_name: api-gateway
+    restart: always
     ports:
       - "3000:3000"
     depends_on:
       - auth-service
       - user-service
       - tour-service
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

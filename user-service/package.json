@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx watch src/index.ts",
+    "build": "tsc",
     "lint": "npx eslint ./src/**",
     "lint:fix": "npx eslint ./src/** --fix",
     "format": "prettier --ignore-path .gitignore --write \"src/**/*.{js,jsx,ts,tsx}\""
