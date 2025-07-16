@@ -49,6 +49,14 @@ app.use(
 app.use(
   ROUTES_PATH.auth,
   proxy(config.authServiceUrl, {
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      console.log('cookie', srcReq.headers.cookie);
+      proxyReqOpts.headers = {
+        ...proxyReqOpts.headers,
+        cookie: srcReq.headers.cookie || '',
+      };
+      return proxyReqOpts;
+    },
     proxyReqPathResolver: (req) => `${ROUTES_PATH.auth}${req.url}`,
   }),
 );
@@ -56,6 +64,14 @@ app.use(
   ROUTES_PATH.user,
   verifyToken,
   proxy(config.userServiceUrl, {
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      proxyReqOpts.headers = {
+        ...proxyReqOpts.headers,
+        cookie: srcReq.headers.cookie || '',
+      };
+      console.log('proxyReqOpts', proxyReqOpts);
+      return proxyReqOpts;
+    },
     proxyReqPathResolver: (req) => `${ROUTES_PATH.user}${req.url}`,
   }),
 );
@@ -63,6 +79,13 @@ app.use(
   ROUTES_PATH.tour,
   verifyToken,
   proxy(config.tourServiceUrl, {
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      proxyReqOpts.headers = {
+        ...proxyReqOpts.headers,
+        cookie: srcReq.headers.cookie || '',
+      };
+      return proxyReqOpts;
+    },
     proxyReqPathResolver: (req) => `${ROUTES_PATH.tour}${req.url}`,
   }),
 );
