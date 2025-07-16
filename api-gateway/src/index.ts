@@ -8,6 +8,7 @@ import morgan from 'morgan';
 import proxy from 'express-http-proxy';
 import { config } from './config';
 import { ROUTES_PATH } from './constants/routesPath';
+import { verifyToken } from './middlewares/verifyToken';
 
 dotenv.config();
 const app: Application = express();
@@ -53,12 +54,14 @@ app.use(
 );
 app.use(
   ROUTES_PATH.user,
+  verifyToken,
   proxy(config.userServiceUrl, {
     proxyReqPathResolver: (req) => `${ROUTES_PATH.user}${req.url}`,
   }),
 );
 app.use(
   ROUTES_PATH.tour,
+  verifyToken,
   proxy(config.tourServiceUrl, {
     proxyReqPathResolver: (req) => `${ROUTES_PATH.tour}${req.url}`,
   }),
