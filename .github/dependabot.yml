@@ -1,0 +1,117 @@
+version: 2
+updates:
+  # Enable version updates for npm in api-gateway
+  - package-ecosystem: "npm"
+    directory: "/api-gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(api-gateway)"
+      include: "scope"
+    reviewers:
+      - "@dependabot"
+    assignees:
+      - "@dependabot"
+
+  # Enable version updates for npm in auth-service
+  - package-ecosystem: "npm"
+    directory: "/auth-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(auth-service)"
+      include: "scope"
+    reviewers:
+      - "@dependabot"
+    assignees:
+      - "@dependabot"
+
+  # Enable version updates for npm in user-service
+  - package-ecosystem: "npm"
+    directory: "/user-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(user-service)"
+      include: "scope"
+    reviewers:
+      - "@dependabot"
+    assignees:
+      - "@dependabot"
+
+  # Enable version updates for npm in tour-service
+  - package-ecosystem: "npm"
+    directory: "/tour-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(tour-service)"
+      include: "scope"
+    reviewers:
+      - "@dependabot"
+    assignees:
+      - "@dependabot"
+
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    directory: "/api-gateway"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/auth-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/user-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/tour-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"
