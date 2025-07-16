@@ -25,7 +25,7 @@ export const verifyUser = async (req: Request, res: Response, next: NextFunction
   try {
     const decode = await extractAndVerifyToken(req);
     const role = decode.role;
-    if (role !== 'user' && role !== 'admin') {
+    if (role !== 'USER' && role !== 'ADMIN') {
       return res
         .status(403)
         .json({ success: false, error: true, message: 'Forbidden: User access required' });
@@ -47,7 +47,7 @@ export const verifyAdmin = async (req: Request, res: Response, next: NextFunctio
   try {
     const decode = await extractAndVerifyToken(req);
     const role = decode.role;
-    if (role !== 'admin') {
+    if (role !== 'ADMIN') {
       return res
         .status(403)
         .json({ success: false, error: true, message: 'Forbidden: Admin access required' });

@@ -1,3 +1,4 @@
+export type UserRoles = 'ADMIN' | 'USER';
 export interface IUser {
   _id?: string;
   _doc?: {
@@ -5,11 +6,11 @@ export interface IUser {
     username: string;
     password: string;
     photo: string;
-    role?: string;
+    role?: UserRoles;
   };
   email: string;
   username: string;
   password: string;
   photo: string;
-  role?: string;
+  role?: UserRoles;
 }

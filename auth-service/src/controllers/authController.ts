@@ -4,7 +4,7 @@ import UserModel from '../models/User';
 import { generateAccessToken, generateRefreshToken } from '../utils/tokenUtils';
 
 export const register = async (req: Request, res: Response) => {
-  const { email, username, password, photo } = req.body;
+  const { email, username, password, photo, role } = req.body;
   try {
     const userExists = await UserModel.findOne({ email });
     // check if user exist
@@ -22,6 +22,7 @@ export const register = async (req: Request, res: Response) => {
       username,
       password: hasPassword,
       photo,
+      role,
     });
 
     await newUser.save();
@@ -44,7 +45,7 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const user = await UserModel.findOne({ email: req.body?.email }).lean();
+    const user = await UserModel.findOne({ username: req.body?.username }).lean();
 
     if (!user) {
       res.status(400).json({
