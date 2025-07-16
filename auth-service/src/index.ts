@@ -12,7 +12,7 @@ dotenv.config();
 const app: Application = express();
 const port = process.env.PORT || 8080;
 const corsOptions = {
-  // origin: ['http://127.0.0.1:5173', 'http://localhost:5173', process.env.CLIENT_BASE_URL as string],
+  // origin: ['http://127.0.0.1:5173', 'http://localhost:5173', process.env.FRONTEND_URL as string],
   origin: process.env.FRONTEND_URL,
   credentials: true,
 };
