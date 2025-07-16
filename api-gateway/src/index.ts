@@ -48,22 +48,19 @@ app.use(
 app.use(
   ROUTES_PATH.auth,
   proxy(config.authServiceUrl, {
-    proxyReqPathResolver: (req) => `
-    ${ROUTES_PATH.auth}${req.url}`,
+    proxyReqPathResolver: (req) => `${ROUTES_PATH.auth}${req.url}`,
   }),
 );
 app.use(
   ROUTES_PATH.user,
   proxy(config.userServiceUrl, {
-    proxyReqPathResolver: (req) => `
-    ${ROUTES_PATH.user}${req.url}`,
+    proxyReqPathResolver: (req) => `${ROUTES_PATH.user}${req.url}`,
   }),
 );
 app.use(
   ROUTES_PATH.tour,
   proxy(config.tourServiceUrl, {
-    proxyReqPathResolver: (req) => `
-    ${ROUTES_PATH.tour}${req.url}`,
+    proxyReqPathResolver: (req) => `${ROUTES_PATH.tour}${req.url}`,
   }),
 );
 

@@ -1,4 +1,21 @@
 services:
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
+      - AUTH_SERVICE_URI=${AUTH_SERVICE_URI}
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - TOUR_SERVICE_URI=${TOUR_SERVICE_URI}
+      - MONGO_URI=${MONGO_URI}
+    depends_on:
+      - auth-service
+      - user-service
+      - tour-service
+
   auth-service:
     build: ./auth-service
     container_name: auth-service
@@ -6,10 +23,8 @@ services:
     ports:
       - "4001:4001"
     environment:
-      - JWT_SECRET=supersecretkey
+      - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
       - MONGO_URI=${MONGO_URI}
-    networks:
-      - app-network
 
   user-service:
     build: ./user-service
@@ -18,10 +33,8 @@ services:
     ports:
       - "4002:4002"
     environment:
-      - JWT_SECRET=supersecretkey
+      - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
       - MONGO_URI=${MONGO_URI}
-    networks:
-      - app-network
 
   tour-service:
     build: ./tour-service
@@ -30,24 +43,5 @@ services:
     ports:
       - "4003:4003"
     environment:
-      - JWT_SECRET=supersecretkey
+      - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
       - MONGO_URI=${MONGO_URI}
-    networks:
-      - app-network
-
-  api-gateway:
-    build: ./api-gateway
-    container_name: api-gateway
-    restart: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - auth-service
-      - user-service
-      - tour-service
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
