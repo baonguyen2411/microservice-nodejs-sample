@@ -15,6 +15,7 @@ services:
       - auth-service
       - user-service
       - tour-service
+      - booking-service
 
   auth-service:
     build: ./auth-service
