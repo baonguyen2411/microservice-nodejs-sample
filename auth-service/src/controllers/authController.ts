@@ -1,5 +1,6 @@
 import { CookieOptions, Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import UserModel from '../models/User';
 import { generateAccessToken, generateRefreshToken } from '../utils/tokenUtils';
 
@@ -123,5 +124,59 @@ export const logout = async (req: Request, res: Response) => {
       success: false,
     });
     return;
+  }
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken || req.headers?.authorization?.split(' ')[1];
+
+    if (!refreshToken) {
+      res.status(400).json({ message: 'Refresh token not found', error: true, success: false });
+      return;
+    }
+
+    const verifyRefreshToken = await jwt.verify(
+      refreshToken,
+      process.env.SECRET_KEY_REFRESH_TOKEN ?? '',
+    );
+
+    if (!verifyRefreshToken) {
+      res.status(401).json({ message: 'Token is expired', error: true, success: false });
+      return;
+    }
+
+    const user = await UserModel.findById((verifyRefreshToken as { _id: string })?._id).lean();
+
+    if (!user) {
+      res.status(401).json({ message: 'User not found', error: true, success: false });
+      return;
+    }
+
+    const newAccessToken = await generateAccessToken({
+      ...user,
+      _id: user._id.toString(),
+      photo: user.photo || '',
+    });
+
+    const cookiesOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    } as CookieOptions;
+
+    res.cookie('accessToken', newAccessToken, cookiesOption);
+
+    res.status(200).json({
+      message: 'New access token generated successfully',
+      success: true,
+      error: false,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: (error as Error)?.message || error,
+      error: true,
+      success: false,
+    });
   }
 };
