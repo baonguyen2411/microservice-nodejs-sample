@@ -76,6 +76,7 @@ docker-compose ps
 docker-compose logs auth-service
 docker-compose logs user-service
 docker-compose logs tour-service
+docker-compose logs booking-service
 docker-compose logs api-gateway
 
 # Access service directly
