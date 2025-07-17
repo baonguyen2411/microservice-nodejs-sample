@@ -45,3 +45,13 @@ services:
     environment:
       - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
       - MONGO_URI=${MONGO_URI}
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    restart: always
+    ports:
+      - "4004:4004"
+    environment:
+      - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
+      - MONGO_URI=${MONGO_URI}

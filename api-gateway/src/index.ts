@@ -89,6 +89,20 @@ app.use(
     proxyReqPathResolver: (req) => `${ROUTES_PATH.tour}${req.url}`,
   }),
 );
+app.use(
+  ROUTES_PATH.booking,
+  verifyToken,
+  proxy(config.bookingServiceUrl, {
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      proxyReqOpts.headers = {
+        ...proxyReqOpts.headers,
+        cookie: srcReq.headers.cookie || '',
+      };
+      return proxyReqOpts;
+    },
+    proxyReqPathResolver: (req) => `${ROUTES_PATH.booking}${req.url}`,
+  }),
+);
 
 app.listen(port, () => {
   connectDB();

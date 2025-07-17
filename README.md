@@ -83,4 +83,5 @@ curl http://localhost:4000  # API Gateway
 curl http://localhost:4001  # Auth Service
 curl http://localhost:4002  # User Service
 curl http://localhost:4003  # Tour Service
+curl http://localhost:4004  # Booking Service
 ```
