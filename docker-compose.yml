@@ -10,6 +10,7 @@ services:
       - AUTH_SERVICE_URI=${AUTH_SERVICE_URI}
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - TOUR_SERVICE_URI=${TOUR_SERVICE_URI}
+      - BOOKING_SERVICE_URI=${BOOKING_SERVICE_URI}
       - MONGO_URI=${MONGO_URI}
     depends_on:
       - auth-service
