@@ -46,6 +46,7 @@ app.use(
   }),
 );
 
+// Public route example (no auth)
 app.use(
   ROUTES_PATH.auth,
   proxy(config.authServiceUrl, {
@@ -60,6 +61,8 @@ app.use(
     proxyReqPathResolver: (req) => `${ROUTES_PATH.auth}${req.url}`,
   }),
 );
+
+// Protected route to user service
 app.use(
   ROUTES_PATH.user,
   verifyToken,
@@ -75,6 +78,7 @@ app.use(
     proxyReqPathResolver: (req) => `${ROUTES_PATH.user}${req.url}`,
   }),
 );
+// Protected route to tour service
 app.use(
   ROUTES_PATH.tour,
   verifyToken,
@@ -89,6 +93,7 @@ app.use(
     proxyReqPathResolver: (req) => `${ROUTES_PATH.tour}${req.url}`,
   }),
 );
+// Protected route to booking service
 app.use(
   ROUTES_PATH.booking,
   verifyToken,
