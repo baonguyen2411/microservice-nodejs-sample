@@ -1,168 +1,203 @@
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import { UserService } from '../services/user.service';
+import { asyncWrapper } from '../utils/asyncWrapper';
+import { IAuthenticatedRequest } from '../types/user';
+import { config } from '../utils/config';
 
-const cookiesOption = {
+const cookiesOption: CookieOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'none',
-} as CookieOptions;
+  secure: config.NODE_ENV === 'production',
+  sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+const accessTokenCookieOptions: CookieOptions = {
+  ...cookiesOption,
+  maxAge: 60 * 60 * 1000, // 1 hour
+};
+
+interface SuccessResponse<T = unknown> {
+  success: true;
+  error: false;
+  message: string;
+  data?: T;
+}
+
+const sendSuccessResponse = <T>(
+  res: Response,
+  message: string,
+  data?: T,
+  statusCode = 200,
+): void => {
+  const response: SuccessResponse<T> = {
+    success: true,
+    error: false,
+    message,
+  };
+
+  if (data !== undefined) {
+    response.data = data;
+  }
+
+  res.status(statusCode).json(response);
+};
 
 export const UserController = {
-  createUser: async (req: Request, res: Response) => {
-    try {
-      const savedUser = await UserService.createUser(req.body);
+  createUser: asyncWrapper(async (req, res) => {
+    const user = await UserService.createUser(req.body);
+    sendSuccessResponse(res, 'User created successfully', user, 201);
+  }),
 
-      res.status(200).json({ success: true, message: 'Successfully created', data: savedUser });
-    } catch (error) {
-      console.error('Something went wrong: ', error);
-      res.status(500).json({ success: false, message: 'Failed to create' });
-    }
-  },
-  updateUser: async (req: Request, res: Response) => {
-    const id = req.params.id;
-
-    try {
-      const updatedUser = await UserService.updateUser(id, req.body);
-
-      res.status(200).json({
-        success: true,
-        message: 'Successfully updated',
-        data: updatedUser,
-      });
-    } catch (error) {
-      console.error('Something went wrong: ', error);
-      res.status(500).json({
+  updateUser: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({
         success: false,
-        message: 'Failed to updated',
-      });
-    }
-  },
-  deleteUser: async (req: Request, res: Response) => {
-    const id = req.params.id;
-
-    try {
-      const deletedUser = await UserService.deleteUser(id);
-
-      res.status(200).json({
-        success: true,
-        message: 'Successfully deleted',
-        data: deletedUser,
-      });
-    } catch (error) {
-      console.error('Something went wrong: ', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to deleted',
-      });
-    }
-  },
-  getSingleUser: async (req: Request, res: Response) => {
-    const id = req.params.id;
-
-    try {
-      const user = await UserService.getSingleUser(id);
-
-      res.status(200).json({
-        success: true,
-        message: 'User found',
-        data: user,
-      });
-    } catch (error) {
-      console.error('Something went wrong: ', error);
-      res.status(500).json({
-        success: false,
-        message: 'No user found',
-      });
-    }
-  },
-  getAllUser: async (req: Request, res: Response) => {
-    try {
-      const users = await UserService.getAllUser();
-
-      res.status(200).json({
-        success: true,
-        message: 'Users found',
-        data: users,
-      });
-    } catch (error) {
-      console.error('Something went wrong: ', error);
-      res.status(404).json({
-        success: false,
-        message: 'Not found',
-      });
-    }
-  },
-  register: async (req: Request, res: Response) => {
-    try {
-      await UserService.createUser(req.body);
-
-      res.status(200).json({ success: true, message: 'User successfully created' });
-    } catch (error) {
-      console.error('Something went wrong: ', error);
-      res.status(500).json({ success: false, message: 'Internal server error, Try again' });
-    }
-  },
-  login: async (req: Request, res: Response) => {
-    try {
-      const { accessToken, refreshToken, user } = await UserService.login(
-        req.body.email,
-        req.body.password,
-      );
-
-      res.cookie('accessToken', accessToken, cookiesOption);
-      res.cookie('refreshToken', refreshToken, cookiesOption);
-
-      res
-        .status(200)
-        .json({ message: 'Login successfully', success: true, error: false, data: user });
-    } catch (error) {
-      res.status(500).json({
-        message: (error as Error)?.message || error,
         error: true,
-        success: false,
+        message: 'User ID is required',
       });
       return;
     }
-  },
-  logout: async (req: Request, res: Response) => {
-    try {
-      const userId = (req as Request & { userId: string }).userId;
+    const updatedUser = await UserService.updateUser(id, req.body);
+    sendSuccessResponse(res, 'User updated successfully', updatedUser);
+  }),
 
-      res.clearCookie('accessToken', cookiesOption);
-      res.clearCookie('refreshToken', cookiesOption);
-
-      await UserService.logout(userId);
-
-      res.status(200).json({ message: 'Logout successfully', success: true, error: false });
-    } catch (error) {
-      res.status(500).json({
-        message: (error as Error)?.message || error,
-        error: true,
+  deleteUser: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({
         success: false,
+        error: true,
+        message: 'User ID is required',
       });
       return;
     }
-  },
-  refreshToken: async (req: Request, res: Response) => {
-    try {
-      const refreshToken = req.cookies?.refreshToken || req.headers?.authorization?.split(' ')[1];
-      const userId = (req as Request & { userId: string }).userId;
+    const deletedUser = await UserService.deleteUser(id);
+    sendSuccessResponse(res, 'User deleted successfully', deletedUser);
+  }),
 
-      const newAccessToken = await UserService.refreshToken(userId, refreshToken);
-
-      res.cookie('accessToken', newAccessToken, cookiesOption);
-
-      res.status(200).json({
-        message: 'New access token generated successfully',
-        success: true,
-        error: false,
-      });
-    } catch (error) {
-      res.status(500).json({
-        message: (error as Error)?.message || error,
-        error: true,
+  getSingleUser: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({
         success: false,
+        error: true,
+        message: 'User ID is required',
       });
+      return;
     }
-  },
+    const user = await UserService.getSingleUser(id);
+    sendSuccessResponse(res, 'User retrieved successfully', user);
+  }),
+
+  getAllUsers: asyncWrapper(async (_req, res) => {
+    const users = await UserService.getAllUsers();
+    sendSuccessResponse(res, 'Users retrieved successfully', users);
+  }),
+
+  login: asyncWrapper(async (req, res) => {
+    const { accessToken, refreshToken, user } = await UserService.login(req.body);
+
+    res.cookie('accessToken', accessToken, accessTokenCookieOptions);
+    res.cookie('refreshToken', refreshToken, cookiesOption);
+
+    sendSuccessResponse(res, 'Login successful', { user, accessToken });
+  }),
+
+  logout: asyncWrapper(async (req, res) => {
+    const authReq = req as IAuthenticatedRequest;
+    await UserService.logout(authReq.userId);
+
+    res.clearCookie('accessToken', cookiesOption);
+    res.clearCookie('refreshToken', cookiesOption);
+
+    sendSuccessResponse(res, 'Logout successful');
+  }),
+
+  refreshToken: asyncWrapper(async (req, res) => {
+    const authReq = req as IAuthenticatedRequest;
+    const refreshToken = req.cookies?.refreshToken || req.headers?.authorization?.split(' ')[1];
+
+    const newAccessToken = await UserService.refreshToken(authReq.userId, refreshToken);
+
+    res.cookie('accessToken', newAccessToken, accessTokenCookieOptions);
+
+    sendSuccessResponse(res, 'Access token refreshed successfully', {
+      accessToken: newAccessToken,
+    });
+  }),
+
+  getUsersByRole: asyncWrapper(async (req, res) => {
+    const { role } = req.params;
+
+    if (!role || !['ADMIN', 'USER'].includes(role)) {
+      res.status(400).json({
+        success: false,
+        error: true,
+        message: 'Invalid role parameter',
+      });
+      return;
+    }
+
+    const users = await UserService.getUsersByRole(role as 'ADMIN' | 'USER');
+    sendSuccessResponse(res, `${role} users retrieved successfully`, users);
+  }),
+
+  updateUserStatus: asyncWrapper(async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: true,
+        message: 'User ID is required',
+      });
+      return;
+    }
+
+    if (!status || !['Active', 'Inactive', 'Suspended'].includes(status)) {
+      res.status(400).json({
+        success: false,
+        error: true,
+        message: 'Invalid status value',
+      });
+      return;
+    }
+
+    const user = await UserService.updateUserStatus(id, status);
+    sendSuccessResponse(res, 'User status updated successfully', user);
+  }),
+
+  searchUsers: asyncWrapper(async (req, res) => {
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: true,
+        message: 'Search query is required',
+      });
+      return;
+    }
+
+    const users = await UserService.searchUsers(q);
+    sendSuccessResponse(res, 'Search completed successfully', users);
+  }),
+
+  getUserProfile: asyncWrapper(async (req, res) => {
+    const authReq = req as IAuthenticatedRequest;
+    const user = await UserService.getSingleUser(authReq.userId);
+    sendSuccessResponse(res, 'Profile retrieved successfully', user);
+  }),
+
+  updateUserProfile: asyncWrapper(async (req, res) => {
+    const authReq = req as IAuthenticatedRequest;
+    // Users can only update their own profile (except admins)
+    const targetUserId =
+      authReq.userRole === 'ADMIN' ? req.params.id || authReq.userId : authReq.userId;
+
+    const updatedUser = await UserService.updateUser(targetUserId, req.body);
+    sendSuccessResponse(res, 'Profile updated successfully', updatedUser);
+  }),
 };

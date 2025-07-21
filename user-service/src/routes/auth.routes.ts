@@ -1,15 +1,13 @@
-import express, { Router } from 'express';
-import { AuthController } from '../controllers/auth.controller';
+import express, { RequestHandler, Router } from 'express';
+import { UserController } from '../controllers/user.controller';
+import { verifyUser } from '../middlewares/verifyToken';
 
 const router: Router = express.Router();
 
-// register
-router.post('/register', AuthController.register);
-// login
-router.post('/login', AuthController.login);
-// refresh token
-router.post('/refresh-token', AuthController.refreshToken);
-// logout
-router.post('/logout', AuthController.logout);
+// Authentication routes
+router.post('/register', UserController.createUser);
+router.post('/login', UserController.login);
+router.post('/logout', verifyUser as RequestHandler, UserController.logout);
+router.post('/refresh-token', verifyUser as RequestHandler, UserController.refreshToken);
 
 export default router;
