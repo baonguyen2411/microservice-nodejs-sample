@@ -23,20 +23,9 @@ services:
       - BOOKING_SERVICE_URI=${BOOKING_SERVICE_URI}
       - MONGO_URI=${MONGO_URI}
     depends_on:
-      - auth-service
       - user-service
       - tour-service
       - booking-service
-
-  auth-service:
-    build: ./auth-service
-    container_name: auth-service
-    restart: always
-    ports:
-      - "4001:4001"
-    environment:
-      - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
-      - MONGO_URI=${MONGO_URI}
 
   user-service:
     build: ./user-service
