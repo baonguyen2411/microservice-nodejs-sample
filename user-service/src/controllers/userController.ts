@@ -1,94 +1,82 @@
-import User from '../models/User';
 import { Request, Response } from 'express';
+import { userService } from '../services/userService';
+import { ResponseView } from '../views/responseView';
 
 // create new user
-export const createUser = async (req: Request, res: Response) => {
-  const newUser = new User(req.body);
-
+export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const savedUser = await newUser.save();
-
-    res.status(200).json({ success: true, message: 'Successfully created', data: savedUser });
+    const savedUser = await userService.createUser(req.body);
+    ResponseView.created(res, 'Successfully created', savedUser);
   } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(500).json({ success: false, message: 'Failed to create' });
+    ResponseView.serverError(res, error);
   }
 };
 
-export const updateUser = async (req: Request, res: Response) => {
-  const id = req.params.id;
-
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updatedUser = await User.findByIdAndUpdate(id, { $set: req.body }, { new: true });
-
-    res.status(200).json({
-      success: true,
-      message: 'Successfully updated',
-      data: updatedUser,
-    });
+    const id = req.params.id;
+    const updatedUser = await userService.updateUser(id, req.body);
+    ResponseView.success(res, 'Successfully updated', updatedUser);
   } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to updated',
-    });
+    if (error instanceof Error) {
+      if (error.message.includes('not found')) {
+        ResponseView.notFound(res, error.message);
+      } else if (error.message.includes('Invalid')) {
+        ResponseView.error(res, error.message, 400);
+      } else {
+        ResponseView.serverError(res, error);
+      }
+    } else {
+      ResponseView.serverError(res, error);
+    }
   }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
-  const id = req.params.id;
-
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const deletedUser = await User.findByIdAndDelete(id);
-
-    res.status(200).json({
-      success: true,
-      message: 'Successfully deleted',
-      data: deletedUser,
-    });
+    const id = req.params.id;
+    const deletedUser = await userService.deleteUser(id);
+    ResponseView.success(res, 'Successfully deleted', deletedUser);
   } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to deleted',
-    });
+    if (error instanceof Error) {
+      if (error.message.includes('not found')) {
+        ResponseView.notFound(res, error.message);
+      } else if (error.message.includes('Invalid')) {
+        ResponseView.error(res, error.message, 400);
+      } else {
+        ResponseView.serverError(res, error);
+      }
+    } else {
+      ResponseView.serverError(res, error);
+    }
   }
 };
 
-export const getSingleUser = async (req: Request, res: Response) => {
-  const id = req.params.id;
-
+export const getSingleUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(id, { $set: req.body }, { new: true }).select('-password');
-
-    res.status(200).json({
-      success: true,
-      message: 'User found',
-      data: user,
-    });
+    const id = req.params.id;
+    const user = await userService.getUserById(id);
+    ResponseView.success(res, 'User found', user);
   } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(500).json({
-      success: false,
-      message: 'No user found',
-    });
+    if (error instanceof Error) {
+      if (error.message.includes('not found')) {
+        ResponseView.notFound(res, error.message);
+      } else if (error.message.includes('Invalid')) {
+        ResponseView.error(res, error.message, 400);
+      } else {
+        ResponseView.serverError(res, error);
+      }
+    } else {
+      ResponseView.serverError(res, error);
+    }
   }
 };
 
-export const getAllUser = async (req: Request, res: Response) => {
+export const getAllUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const users = await User.find({}).select('-password');
-
-    res.status(200).json({
-      success: true,
-      message: 'Users found',
-      data: users,
-    });
+    const users = await userService.getAllUsers();
+    ResponseView.success(res, 'Users found', users);
   } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(404).json({
-      success: false,
-      message: 'Not found',
-    });
+    ResponseView.serverError(res, error);
   }
 };
