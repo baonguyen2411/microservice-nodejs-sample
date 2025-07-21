@@ -14,9 +14,8 @@ This project is a simple microservices architecture using:
 
 | Service      | Port  | Description                          |
 | ------------ | ----- | ------------------------------------ |
-| Auth Service | 4001  | Handles login and JWT token issuing  |
-| User Service | 4002  | Stores and retrieves user profiles   |
-| Tour Service | 4003  | Stores and retrieves tour and review |
+| User Service | 4001  | Stores and retrieves user profiles   |
+| Tour Service | 4002  | Stores and retrieves tour and review |
 | API Gateway  | 4000  | Forwards requests to respective APIs |
 | MongoDB      | 27017 | Shared database engine per service   |
 
@@ -73,7 +72,6 @@ docker-compose up --build
 docker-compose ps
 
 # View logs for specific service
-docker-compose logs auth-service
 docker-compose logs user-service
 docker-compose logs tour-service
 docker-compose logs booking-service
@@ -81,8 +79,7 @@ docker-compose logs api-gateway
 
 # Access service directly
 curl http://localhost:4000  # API Gateway
-curl http://localhost:4001  # Auth Service
-curl http://localhost:4002  # User Service
-curl http://localhost:4003  # Tour Service
-curl http://localhost:4004  # Booking Service
+curl http://localhost:4001  # User Service
+curl http://localhost:4002  # Tour Service
+curl http://localhost:4003  # Booking Service
 ```

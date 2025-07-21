@@ -49,9 +49,8 @@ app.use(
 // Public route example (no auth)
 app.use(
   ROUTES_PATH.auth,
-  proxy(config.authServiceUrl, {
+  proxy(config.userServiceUrl, {
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
-      console.log('cookie', srcReq.headers.cookie);
       proxyReqOpts.headers = {
         ...proxyReqOpts.headers,
         cookie: srcReq.headers.cookie || '',
@@ -72,7 +71,6 @@ app.use(
         ...proxyReqOpts.headers,
         cookie: srcReq.headers.cookie || '',
       };
-      console.log('proxyReqOpts', proxyReqOpts);
       return proxyReqOpts;
     },
     proxyReqPathResolver: (req) => `${ROUTES_PATH.user}${req.url}`,
