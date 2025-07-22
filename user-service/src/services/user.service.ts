@@ -1,124 +1,211 @@
 import bcryptjs from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
 import { UserRepository } from '../repositories/user.repository';
-import { IUser } from '../types/user';
-import { generateAccessToken, generateRefreshToken } from '../utils/generateToken';
+import {
+  IUserResponse,
+  ILoginRequest,
+  IRegisterRequest,
+  IUpdateUserRequest,
+  ILoginResponse,
+  ITokenPayload,
+} from '../types/user';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from '../utils/generateToken';
+import { ConflictError, AuthenticationError, ValidationError } from '../utils/errors';
+import {
+  validateLoginRequest,
+  validateRegisterRequest,
+  validateUpdateUserRequest,
+  validateObjectId,
+} from '../utils/validation';
+import { IUserDocument } from '../types/user';
 
 export const UserService = {
-  createUser: async (user: IUser) => {
-    const existingUser = await UserRepository.findUserByEmail(user.email);
+  async createUser(userData: IRegisterRequest): Promise<IUserResponse> {
+    validateRegisterRequest(userData);
 
-    if (existingUser) {
-      throw new Error('User already exists');
-    }
+    // Check if user already exists
+    const [existingUserByEmail, existingUserByUsername] = await Promise.all([
+      UserRepository.findUserByEmail(userData.email),
+      UserRepository.findUserByUsername(userData.username),
+    ]);
 
-    const salt = await bcryptjs.genSalt(10);
-    const hasPassword = await bcryptjs.hash(user.password, salt);
-
-    return await UserRepository.createUser({
-      ...user,
-      password: hasPassword,
-    });
-  },
-  updateUser: async (id: string, user: IUser) => {
-    const existingUser = await UserRepository.getSingleUser(id);
-    if (!existingUser) {
-      throw new Error('User not found');
-    }
-    return await UserRepository.updateUser(id, user);
-  },
-  deleteUser: async (id: string) => {
-    const existingUser = await UserRepository.getSingleUser(id);
-    if (!existingUser) {
-      throw new Error('User not found');
-    }
-    return await UserRepository.deleteUser(id);
-  },
-  getSingleUser: async (id: string) => {
-    const existingUser = await UserRepository.getSingleUser(id);
-    if (!existingUser) {
-      throw new Error('User not found');
-    }
-    return existingUser;
-  },
-  getAllUser: async () => {
-    return await UserRepository.getAllUser();
-  },
-  login: async (email: string, password: string) => {
-    if (!email || !password) {
-      throw new Error('Email and password are required');
+    if (existingUserByEmail) {
+      throw new ConflictError('User with this email already exists');
     }
 
-    const existingUser = await UserRepository.findUserByEmail(email);
-    if (!existingUser) {
-      throw new Error('User not found');
+    if (existingUserByUsername) {
+      throw new ConflictError('User with this username already exists');
     }
 
-    const isPasswordCorrect = await bcryptjs.compare(password, existingUser.password);
-    if (!isPasswordCorrect) {
-      throw new Error('Invalid password');
-    }
+    // Hash password
+    const salt = await bcryptjs.genSalt(12); // Increased salt rounds for better security
+    const hashedPassword = await bcryptjs.hash(userData.password, salt);
 
-    const accessToken = generateAccessToken({
-      ...existingUser,
-      _id: existingUser._id.toString(),
-      photo: existingUser.photo || '',
-    });
-    const refreshToken = generateRefreshToken({
-      ...existingUser,
-      _id: existingUser._id.toString(),
-      photo: existingUser.photo || '',
+    const newUser = await UserRepository.createUser({
+      ...userData,
+      password: hashedPassword,
+      role: 'USER',
+      status: 'Active',
     });
 
-    await UserRepository.updateUserRefreshToken(existingUser._id.toString(), refreshToken);
+    return this.formatUserResponse(newUser);
+  },
+
+  async updateUser(id: string, updates: IUpdateUserRequest): Promise<IUserResponse> {
+    validateObjectId(id);
+    validateUpdateUserRequest(updates);
+
+    // Check if email/username conflicts with other users
+    if (updates.email) {
+      const existingUser = await UserRepository.findUserByEmail(updates.email);
+      if (existingUser && existingUser._id && existingUser._id.toString() !== id) {
+        throw new ConflictError('Email already in use by another user');
+      }
+    }
+
+    if (updates.username) {
+      const existingUser = await UserRepository.findUserByUsername(updates.username);
+      if (existingUser && existingUser._id && existingUser._id.toString() !== id) {
+        throw new ConflictError('Username already in use by another user');
+      }
+    }
+
+    const updatedUser = await UserRepository.updateUser(id, updates);
+    return this.formatUserResponse(updatedUser);
+  },
+
+  async deleteUser(id: string): Promise<IUserResponse> {
+    validateObjectId(id);
+    const deletedUser = await UserRepository.deleteUser(id);
+    return this.formatUserResponse(deletedUser);
+  },
+
+  async getSingleUser(id: string): Promise<IUserResponse> {
+    validateObjectId(id);
+    const user = await UserRepository.getUserById(id);
+    return this.formatUserResponse(user);
+  },
+
+  async getAllUsers(): Promise<IUserResponse[]> {
+    const users = await UserRepository.getAllUser();
+    return users.map((user) => this.formatUserResponse(user));
+  },
+
+  async login(loginData: ILoginRequest): Promise<ILoginResponse> {
+    validateLoginRequest(loginData);
+
+    const user = await UserRepository.findUserByUsername(loginData.username);
+    if (!user) {
+      throw new AuthenticationError('Invalid username or password');
+    }
+
+    if (user.status !== 'Active') {
+      throw new AuthenticationError('Account is not active');
+    }
+
+    const isPasswordValid = await bcryptjs.compare(loginData.password, user.password);
+    if (!isPasswordValid) {
+      throw new AuthenticationError('Invalid email or password');
+    }
+
+    const tokenPayload: ITokenPayload = {
+      id: user._id ? user._id.toString() : '',
+      role: user.role,
+    };
+
+    const accessToken = generateAccessToken(tokenPayload);
+    const refreshToken = generateRefreshToken(tokenPayload);
+
+    // Update user's refresh token
+    if (user._id) {
+      await UserRepository.updateUserRefreshToken(user._id.toString(), refreshToken);
+    }
 
     return {
-      user: {
-        _id: existingUser._id.toString(),
-        role: existingUser.role,
-        username: existingUser.username,
-        email: existingUser.email,
-        photo: existingUser.photo || '',
-      },
+      user: this.formatUserResponse(user),
       accessToken,
       refreshToken,
     };
   },
-  logout: async (id: string) => {
-    return await UserRepository.updateUserRefreshToken(id, '');
+
+  async logout(userId: string): Promise<void> {
+    validateObjectId(userId);
+    await UserRepository.updateUserRefreshToken(userId, '');
   },
-  register: async (user: IUser) => {
-    const existingUser = await UserRepository.findUserByEmail(user.email);
-    if (existingUser) {
-      throw new Error('User already exists');
+
+  async refreshToken(userId: string, refreshToken: string): Promise<string> {
+    validateObjectId(userId);
+
+    if (!refreshToken) {
+      throw new AuthenticationError('Refresh token is required');
     }
-    return await UserRepository.createUser(user);
+
+    const user = await UserRepository.getUserWithRefreshToken(userId);
+
+    if (refreshToken !== user.refresh_token) {
+      throw new AuthenticationError('Invalid refresh token');
+    }
+
+    // Verify the refresh token
+    try {
+      verifyRefreshToken(refreshToken);
+    } catch {
+      throw new AuthenticationError('Refresh token expired or invalid');
+    }
+
+    const tokenPayload: ITokenPayload = {
+      id: user._id ? user._id.toString() : '',
+      role: user.role,
+    };
+
+    return generateAccessToken(tokenPayload);
   },
-  refreshToken: async (id: string, refreshToken: string) => {
-    const existingUser = await UserRepository.getSingleUser(id);
-    if (!existingUser) {
-      throw new Error('User not found');
+
+  async getUsersByRole(role: 'ADMIN' | 'USER'): Promise<IUserResponse[]> {
+    const users = await UserRepository.getUsersByRole(role);
+    return users.map((user) => this.formatUserResponse(user));
+  },
+
+  async updateUserStatus(
+    id: string,
+    status: 'Active' | 'Inactive' | 'Suspended',
+  ): Promise<IUserResponse> {
+    validateObjectId(id);
+    const user = await UserRepository.updateUserStatus(id, status);
+    return this.formatUserResponse(user);
+  },
+
+  async searchUsers(query: string): Promise<IUserResponse[]> {
+    if (!query || query.trim().length < 2) {
+      throw new ValidationError('Search query must be at least 2 characters long');
     }
 
-    if (refreshToken !== existingUser.refresh_token) {
-      throw new Error('Invalid refresh token');
+    const users = await UserRepository.searchUsers(query.trim());
+    return users.map((user) => this.formatUserResponse(user));
+  },
+
+  // Helper method to format user response
+  formatUserResponse(user: IUserDocument): IUserResponse {
+    const response: IUserResponse = {
+      _id: user._id ? user._id.toString() : '',
+      email: user.email,
+      username: user.username,
+      photo: user.photo || '',
+      role: user.role,
+      status: user.status,
+    };
+
+    if (user.createdAt) {
+      response.createdAt = user.createdAt;
     }
 
-    const verifyRefreshToken = await jwt.verify(
-      refreshToken,
-      process.env.SECRET_KEY_REFRESH_TOKEN ?? '',
-    );
-    if (!verifyRefreshToken) {
-      throw new Error('Token is expired');
+    if (user.updatedAt) {
+      response.updatedAt = user.updatedAt;
     }
 
-    const newAccessToken = generateAccessToken({
-      ...existingUser,
-      _id: existingUser._id.toString(),
-      photo: existingUser.photo || '',
-    });
-
-    return newAccessToken;
+    return response;
   },
 };
