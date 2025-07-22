@@ -1,6 +1,7 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { ITourDocument } from '../types/tour';
 
-const tourSchema = new mongoose.Schema(
+const tourSchema = new Schema<ITourDocument>(
   {
     title: {
       type: String,
@@ -35,14 +36,12 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-
     reviews: [
       {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Review',
       },
     ],
-
     featured: {
       type: Boolean,
       default: false,
@@ -51,4 +50,4 @@ const tourSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model('Tour', tourSchema);
+export default mongoose.model<ITourDocument>('Tour', tourSchema);
