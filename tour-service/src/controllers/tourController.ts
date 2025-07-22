@@ -1,131 +1,159 @@
-import Tour from '../models/Tour';
 import { Request, Response } from 'express';
+import { TourService } from '../services/tour.service';
+import { asyncWrapper } from '../utils/asyncWrapper';
+import { ICreateTourRequest, IUpdateTourRequest, ISearchTourParams } from '../types/tour';
 
 // create new tour
-export const createTour = async (req: Request, res: Response) => {
-  const newTour = new Tour(req.body);
+export const createTour = asyncWrapper(async (req: Request, res: Response) => {
+  const tourData: ICreateTourRequest = req.body;
+  const tour = await TourService.createTour(tourData);
 
-  try {
-    const savedTour = await newTour.save();
-
-    res.status(200).json({ success: true, message: 'Successfully created', data: savedTour });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(500).json({ success: false, message: 'Failed to create' });
-  }
-};
+  res.status(201).json({
+    success: true,
+    message: 'Tour created successfully',
+    data: tour,
+  });
+});
 
 // update tour
-export const updateTour = async (req: Request, res: Response) => {
-  const id = req.params.id;
-  try {
-    const updatedTour = await Tour.findByIdAndUpdate(
-      id,
-      {
-        $set: req.body,
-      },
-      { new: true },
-    );
+export const updateTour = asyncWrapper(async (req: Request, res: Response) => {
+  const id = req.params.id!;
+  const updates: IUpdateTourRequest = req.body;
 
-    res.status(200).json({ success: true, message: 'Successfully updated', data: updatedTour });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(500).json({ success: false, message: 'Failed to update' });
-  }
-};
+  const tour = await TourService.updateTour(id, updates);
+
+  res.status(200).json({
+    success: true,
+    message: 'Tour updated successfully',
+    data: tour,
+  });
+});
 
 // delete tour
-export const deleteTour = async (req: Request, res: Response) => {
-  const id = req.params.id;
-  try {
-    const deletedTour = await Tour.findByIdAndDelete(id);
+export const deleteTour = asyncWrapper(async (req: Request, res: Response) => {
+  const id = req.params.id!;
+  const tour = await TourService.deleteTour(id);
 
-    res.status(200).json({ success: true, message: 'Successfully deleted', data: deletedTour });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(500).json({ success: false, message: 'Failed to delete' });
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: 'Tour deleted successfully',
+    data: tour,
+  });
+});
 
 // get single tour
-export const getSingleTour = async (req: Request, res: Response) => {
-  const id = req.params.id;
-  try {
-    const tour = await Tour.findById(id).populate('reviews');
-    res.status(200).json({ success: true, message: 'Successfully', data: tour });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(404).json({ success: false, message: 'Not found' });
-  }
-};
+export const getSingleTour = asyncWrapper(async (req: Request, res: Response) => {
+  const id = req.params.id!;
+  const tour = await TourService.getSingleTour(id);
 
-// get all tour
-export const getAllTour = async (req: Request, res: Response) => {
-  // for pagination
+  res.status(200).json({
+    success: true,
+    message: 'Tour retrieved successfully',
+    data: tour,
+  });
+});
+
+// get all tours with pagination
+export const getAllTour = asyncWrapper(async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 0;
+  const limit = parseInt(req.query.limit as string) || 8;
 
-  try {
-    const tours = await Tour.find({})
-      .skip(page * 8)
-      .limit(8);
-    res
-      .status(200)
-      .json({ success: true, count: tours.length, message: 'Successfully', data: tours });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(404).json({ success: false, message: 'Not found' });
-  }
-};
+  const result = await TourService.getAllTours(page, limit);
+
+  res.status(200).json({
+    success: true,
+    message: 'Tours retrieved successfully',
+    data: result.tours,
+    pagination: {
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      count: result.count,
+    },
+  });
+});
 
 // get tours by search
-export const getTourBySearch = async (req: Request, res: Response) => {
-  const city =
-    req.query?.city && typeof req.query.city === 'string' ? RegExp(req.query.city, 'i') : '';
-  const distance = req.query.distance || 0;
-  const maxGroupSize = req.query.maxGroupSize || 0;
+export const getTourBySearch = asyncWrapper(async (req: Request, res: Response) => {
+  const searchParams: ISearchTourParams = {};
 
-  try {
-    const tours = await Tour.find({
-      city,
-      distance: {
-        $gte: +distance,
-      },
-      maxGroupSize: {
-        $gte: +maxGroupSize,
-      },
-    }).populate('reviews');
-
-    res.status(200).json({ success: true, message: 'Successfully', data: tours });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(404).json({ success: false, message: 'Not found' });
+  if (req.query.city) {
+    searchParams.city = req.query.city as string;
   }
-};
+  if (req.query.distance) {
+    searchParams.distance = Number(req.query.distance);
+  }
+  if (req.query.maxGroupSize) {
+    searchParams.maxGroupSize = Number(req.query.maxGroupSize);
+  }
+
+  const tours = await TourService.searchTours(searchParams);
+
+  res.status(200).json({
+    success: true,
+    message: 'Tours retrieved successfully',
+    data: tours,
+  });
+});
 
 // get featured tours
-export const getFeaturedTours = async (req: Request, res: Response) => {
-  try {
-    const tours = await Tour.find({
-      featured: true,
-    })
-      .populate('reviews')
-      .limit(8);
+export const getFeaturedTours = asyncWrapper(async (req: Request, res: Response) => {
+  const limit = parseInt(req.query.limit as string) || 8;
+  const tours = await TourService.getFeaturedTours(limit);
 
-    res.status(200).json({ success: true, message: 'Successfully', data: tours });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(404).json({ success: false, message: 'Not found' });
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: 'Featured tours retrieved successfully',
+    data: tours,
+  });
+});
 
 // get tour count
-export const getTourCount = async (req: Request, res: Response) => {
-  try {
-    const tourCount = await Tour.estimatedDocumentCount();
+export const getTourCount = asyncWrapper(async (_req: Request, res: Response) => {
+  const result = await TourService.getTourCount();
 
-    res.status(200).json({ success: true, message: 'Successfully', data: tourCount });
-  } catch (error) {
-    console.error('Something went wrong: ', error);
-    res.status(404).json({ success: false, message: 'Failed to get tour count' });
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: 'Tour count retrieved successfully',
+    data: result.count,
+  });
+});
+
+// get tours by price range
+export const getToursByPriceRange = asyncWrapper(async (req: Request, res: Response) => {
+  const minPrice = Number(req.query.minPrice) || 0;
+  const maxPrice = Number(req.query.maxPrice) || Number.MAX_SAFE_INTEGER;
+
+  const tours = await TourService.getToursByPriceRange(minPrice, maxPrice);
+
+  res.status(200).json({
+    success: true,
+    message: 'Tours retrieved successfully',
+    data: tours,
+  });
+});
+
+// get tours by city
+export const getToursByCity = asyncWrapper(async (req: Request, res: Response) => {
+  const city = req.params.city!;
+  const tours = await TourService.getToursByCity(city);
+
+  res.status(200).json({
+    success: true,
+    message: 'Tours retrieved successfully',
+    data: tours,
+  });
+});
+
+// update tour featured status
+export const updateTourFeaturedStatus = asyncWrapper(async (req: Request, res: Response) => {
+  const id = req.params.id!;
+  const { featured } = req.body;
+
+  const tour = await TourService.updateTourFeaturedStatus(id, featured);
+
+  res.status(200).json({
+    success: true,
+    message: 'Tour featured status updated successfully',
+    data: tour,
+  });
+});

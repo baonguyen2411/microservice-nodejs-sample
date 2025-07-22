@@ -1,10 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { IReviewDocument } from '../types/review';
 
-const reviewSchema = new mongoose.Schema(
+const reviewSchema = new Schema<IReviewDocument>(
   {
     productId: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Tour',
+      required: true,
     },
     username: {
       type: String,
@@ -17,12 +19,11 @@ const reviewSchema = new mongoose.Schema(
     rating: {
       type: Number,
       required: true,
-      min: 0,
+      min: 1,
       max: 5,
-      default: 0,
     },
   },
   { timestamps: true },
 );
 
-export default mongoose.model('Review', reviewSchema);
+export default mongoose.model<IReviewDocument>('Review', reviewSchema);

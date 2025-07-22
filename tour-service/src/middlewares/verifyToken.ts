@@ -21,14 +21,19 @@ const extractAndVerifyToken = async (req: Request): Promise<jwt.JwtPayload> => {
   return decode as jwt.JwtPayload;
 };
 
-export const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const decode = await extractAndVerifyToken(req);
     const role = decode.role;
     if (role !== 'USER' && role !== 'ADMIN') {
-      return res
+      res
         .status(403)
         .json({ success: false, error: true, message: 'Forbidden: User access required' });
+      return;
     }
     (req as Request & { userId: string; userRole: string }).userId = decode.id;
     (req as Request & { userId: string; userRole: string }).userRole = role;
@@ -43,14 +48,19 @@ export const verifyUser = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-export const verifyAdmin = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const decode = await extractAndVerifyToken(req);
     const role = decode.role;
     if (role !== 'ADMIN') {
-      return res
+      res
         .status(403)
         .json({ success: false, error: true, message: 'Forbidden: Admin access required' });
+      return;
     }
     (req as Request & { userId: string; userRole: string }).userId = decode.id;
     (req as Request & { userId: string; userRole: string }).userRole = role;
