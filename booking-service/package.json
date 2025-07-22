@@ -2,13 +2,20 @@
   "name": "booking-service",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "build:watch": "tsc --watch",
     "lint": "npx eslint ./src/**",
     "lint:fix": "npx eslint ./src/** --fix",
-    "format": "prettier --ignore-path .gitignore --write \"src/**/*.{js,jsx,ts,tsx}\""
+    "format": "prettier --ignore-path .gitignore --write \"src/**/*.{js,jsx,ts,tsx}\"",
+    "format:check": "prettier --ignore-path .gitignore --check \"src/**/*.{js,jsx,ts,tsx}\"",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",

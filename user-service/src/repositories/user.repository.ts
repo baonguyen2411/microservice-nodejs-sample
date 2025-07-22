@@ -55,7 +55,7 @@ export const UserRepository = {
   },
 
   async findUserByUsername(username: string): Promise<IUserDocument | null> {
-    return await UserModel.findOne({ username });
+    return await UserModel.findOne({ username }).select('+password');
   },
 
   async updateUserRefreshToken(id: string, refreshToken: string): Promise<IUserDocument> {
