@@ -1,15 +1,15 @@
-import express, { Application } from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express, { Application } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { config } from './utils/config';
-import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { ROUTES_PATH } from './constants/routesPath';
-import userRoutes from './routes/user.routes';
+import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
+import { config } from './utils/config';
+import { connectDB } from './utils/database';
 
 const app: Application = express();
 
@@ -19,35 +19,6 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200,
 };
-
-// Database connection
-mongoose.set('strictQuery', false);
-
-const connectDB = async (): Promise<void> => {
-  try {
-    await mongoose.connect(config.MONGO_URI);
-    console.log('✅ MongoDB database connected successfully');
-  } catch (error) {
-    console.error('❌ MongoDB connection failed:', error);
-    process.exit(1);
-  }
-};
-
-// Handle database connection events
-mongoose.connection.on('error', (error) => {
-  console.error('❌ MongoDB connection error:', error);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('🔌 MongoDB disconnected');
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('🔌 MongoDB connection closed through app termination');
-  process.exit(0);
-});
 
 // Security middleware
 app.use(
