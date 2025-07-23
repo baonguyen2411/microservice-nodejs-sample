@@ -1,6 +1,5 @@
-import { ValidationError } from './errors';
 import { ICreateTourRequest, IUpdateTourRequest } from '../types/tour';
-import { ICreateReviewRequest, IUpdateReviewRequest } from '../types/review';
+import { ValidationError } from './errors';
 
 export const validateCreateTourRequest = (data: ICreateTourRequest): void => {
   const requiredFields = [
@@ -88,43 +87,5 @@ export const validateSearchParams = (params: Record<string, unknown>): void => {
 
   if (params.limit && isNaN(Number(params.limit))) {
     throw new ValidationError('Limit must be a valid number');
-  }
-};
-
-export const validateCreateReviewRequest = (data: ICreateReviewRequest): void => {
-  const requiredFields = ['username', 'reviewText', 'rating'];
-
-  for (const field of requiredFields) {
-    if (!data[field as keyof ICreateReviewRequest]) {
-      throw new ValidationError(`${field} is required`);
-    }
-  }
-
-  if (typeof data.rating !== 'number' || data.rating < 1 || data.rating > 5) {
-    throw new ValidationError('Rating must be a number between 1 and 5');
-  }
-
-  if (data.username.length < 2 || data.username.length > 50) {
-    throw new ValidationError('Username must be between 2 and 50 characters');
-  }
-
-  if (data.reviewText.length < 5 || data.reviewText.length > 500) {
-    throw new ValidationError('Review text must be between 5 and 500 characters');
-  }
-};
-
-export const validateUpdateReviewRequest = (data: IUpdateReviewRequest): void => {
-  if (
-    data.rating !== undefined &&
-    (typeof data.rating !== 'number' || data.rating < 1 || data.rating > 5)
-  ) {
-    throw new ValidationError('Rating must be a number between 1 and 5');
-  }
-
-  if (
-    data.reviewText !== undefined &&
-    (data.reviewText.length < 5 || data.reviewText.length > 500)
-  ) {
-    throw new ValidationError('Review text must be between 5 and 500 characters');
   }
 };

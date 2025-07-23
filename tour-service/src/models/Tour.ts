@@ -50,4 +50,7 @@ const tourSchema = new Schema<ITourDocument>(
   { timestamps: true },
 );
 
-export default mongoose.model<ITourDocument>('Tour', tourSchema);
+// Create indexes for better performance
+tourSchema.index({ title: 1 });
+
+export const TourModel = mongoose.model<ITourDocument>('Tour', tourSchema);

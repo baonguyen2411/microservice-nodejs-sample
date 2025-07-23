@@ -1,5 +1,4 @@
 import { Document, Types } from 'mongoose';
-import { Request } from 'express';
 
 export interface ITour {
   _id?: string | Types.ObjectId;
@@ -67,11 +66,6 @@ export interface ISearchTourParams {
   maxGroupSize?: number;
   page?: number;
   limit?: number;
-}
-
-export interface IAuthenticatedRequest extends Request {
-  userId: string;
-  userRole: string;
 }
 
 export interface ITourCount {
