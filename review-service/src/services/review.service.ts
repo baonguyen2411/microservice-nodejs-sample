@@ -10,13 +10,19 @@ import {
   validateCreateReviewRequest,
   validateUpdateReviewRequest,
   validateObjectId,
+  verifyTourExists,
 } from '../utils/validation';
 import { ValidationError } from '../utils/errors';
 
 export const ReviewService = {
-  async createReview(tourId: string, reviewData: ICreateReviewRequest): Promise<IReviewResponse> {
+  async createReview(tourId: string, reviewData: ICreateReviewRequest, cookie?: string): Promise<IReviewResponse> {
     validateObjectId(tourId);
     validateCreateReviewRequest(reviewData);
+
+    // Validate that the tour exists using remote service
+    if (!(await verifyTourExists(tourId, cookie))) {
+      throw new ValidationError('Tour does not exist');
+    }
 
     const review = {
       ...reviewData,

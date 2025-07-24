@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { IAuthenticatedRequest } from '../types/review';
 
 type AsyncController = (
-  req: Request | IAuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction,
 ) => Promise<void | Response>;

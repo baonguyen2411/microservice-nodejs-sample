@@ -5,16 +5,12 @@ import { NotFoundError } from '../utils/errors';
 
 export const ReviewRepository = {
   async createReview(review: IReview): Promise<IReviewDocument> {
-    if (!(await verifyTourExists(review.productId.toString()))) {
-      throw new Error('Tour does not exist');
-    }
+    // Tour existence validation is now handled at the service layer with proper cookie context
     const newReview = new Review(review);
     const savedReview = await newReview.save();
 
-    // Add review to tour's reviews array
-    await Tour.findByIdAndUpdate(review.productId, {
-      $push: { reviews: savedReview._id },
-    });
+    // Note: Tour review array updates should be handled by the tour service via API call
+    // This maintains service boundaries and prevents direct database coupling
 
     return savedReview;
   },
@@ -40,10 +36,8 @@ export const ReviewRepository = {
       throw new NotFoundError('Review not found');
     }
 
-    // Remove review from tour's reviews array
-    await Tour.findByIdAndUpdate(review.productId, {
-      $pull: { reviews: review._id },
-    });
+    // Note: Tour review array updates should be handled by the tour service via API call
+    // This maintains service boundaries and prevents direct database coupling
 
     return review;
   },

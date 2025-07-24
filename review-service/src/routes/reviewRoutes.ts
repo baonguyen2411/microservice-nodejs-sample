@@ -9,6 +9,7 @@ import {
   getReviewsByRating,
 } from '../controllers/reviewController';
 import { verifyUser } from '../middlewares/verifyToken';
+import { validateTourExists } from '../middlewares/validateRemoteEntities';
 
 const router: Router = express.Router();
 
@@ -18,7 +19,11 @@ router.get('/rating/:rating', getReviewsByRating);
 
 // CRUD routes
 router.get('/', getAllReviews);
-router.post('/:tourId', verifyUser as express.RequestHandler, createReview);
+router.post('/:tourId', 
+  verifyUser as express.RequestHandler, 
+  validateTourExists as express.RequestHandler,
+  createReview
+);
 router.get('/:id', getSingleReview);
 router.put('/:id', verifyUser as express.RequestHandler, updateReview as express.RequestHandler);
 router.delete('/:id', verifyUser as express.RequestHandler, deleteReview as express.RequestHandler);

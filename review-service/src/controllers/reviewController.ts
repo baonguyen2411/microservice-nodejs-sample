@@ -7,8 +7,11 @@ import { ICreateReviewRequest, IUpdateReviewRequest } from '../types/review';
 export const createReview = asyncWrapper(async (req: Request, res: Response) => {
   const tourId = req.params.tourId!;
   const reviewData: ICreateReviewRequest = req.body;
+  
+  // Extract cookie for remote service validation
+  const cookie = req.headers.cookie || '';
 
-  const review = await ReviewService.createReview(tourId, reviewData);
+  const review = await ReviewService.createReview(tourId, reviewData, cookie);
 
   res.status(201).json({
     success: true,
