@@ -21,11 +21,13 @@ services:
       - USER_SERVICE_URI=${USER_SERVICE_URI}
       - TOUR_SERVICE_URI=${TOUR_SERVICE_URI}
       - BOOKING_SERVICE_URI=${BOOKING_SERVICE_URI}
+      - REVIEW_SERVICE_URI=${REVIEW_SERVICE_URI}
       - MONGO_URI=${MONGO_URI}
     depends_on:
       - user-service
       - tour-service
       - booking-service
+      - review-service
 
   user-service:
     build: ./user-service
@@ -55,4 +57,16 @@ services:
       - "4004:4004"
     environment:
       - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
+      - MONGO_URI=${MONGO_URI}
+
+  review-service:
+    build: ./review-service
+    container_name: review-service
+    restart: always
+    ports:
+      - "4005:4005"
+    environment:
+      - SECRET_KEY_ACCESS_TOKEN=${SECRET_KEY_ACCESS_TOKEN}
+      - USER_SERVICE_URI=${USER_SERVICE_URI}
+      - TOUR_SERVICE_URI=${TOUR_SERVICE_URI}
       - MONGO_URI=${MONGO_URI}
